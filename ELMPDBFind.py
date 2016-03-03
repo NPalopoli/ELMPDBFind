@@ -21,6 +21,7 @@ try:
   in_seqatom_fasta = open(sys.argv[2])
 except IndexError:
   print("Input file(s) not specified. Format: ./ELMPDBFind.py <in_ELM-instance-flank.fasta> <in_PDB-SEQATOM.fasta>")
+  # ./ELMPDBFind.py /home/npalopoli/SLiMBench/ELMmap/getELMInstancesSeqs_output/"$line".fasta /home/npalopoli/DBs/SEQATOMs/SEQATOMs_split_all.fasta
   exit()
 except IOError:
   print("Input file(s) not found. Format: ./ELMPDBFind.py <in_ELM-instance-flank.fasta> <in_PDB_SEQATOM.fasta>")
@@ -165,13 +166,20 @@ for index, record in enumerate(SeqIO.parse(in_elm_fasta, "fasta")):
   if 'sequence' in record.id:
     elm_seqs['name'] = record.id.rsplit('|',1)[0]
     elm_seqs['sequence'] = record.seq
+    print '#NAM:{}\n#SEQ:{}'.format(elm_seqs['name'],elm_seqs['sequence'])
   elif 'instance' in record.id:
     elm_seqs['instance'] = record.seq.strip("-")
-  else:
+    print '#ELM:{}'.format(elm_seqs['instance'])
+  elif 'flanks' in record.id:
     elm_seqs['flanks'] = record.seq.strip("-")
-#  print '{}\n'.format(record.seq)
-#  print elm_seqs
-print '#NAM:{}\n#SEQ:{}\n#ELM:{}\n#FLK:{}'.format(elm_seqs['name'],elm_seqs['sequence'],elm_seqs['instance'],elm_seqs['flanks'])
+    print '#FLK:{}'.format(elm_seqs['flanks'])
+  else:  # parse flankn
+    elm_seqs_key = record.id.rsplit('|',1)[1]
+    elm_seqs[elm_seqs_key] = record.seq.strip("-")
+    elm_seqs_flanklen = len(elm_seqs[elm_seqs_key]) - len(elm_seqs['instance'])
+    print '#F{}:{}'.format(elm_seqs_flanklen,elm_seqs[elm_seqs_key])
+#    print '#FLN:{}'.format(elm_seqs[elm_seqs_key])
+#print '#NAM:{}\n#SEQ:{}\n#ELM:{}\n#FLK:{}\n#FLN:{}'.format(elm_seqs['name'],elm_seqs['sequence'],elm_seqs['instance'],elm_seqs['flanks'],elm_seqs[elm_seqs_key])
 
 # Find ELM sequences in PDB sequences
 pdb_seqs = SeqIO.parse(in_seqatom_fasta, "fasta")

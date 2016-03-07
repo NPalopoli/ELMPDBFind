@@ -116,12 +116,12 @@ def placeELM(seq,ELMpos):
       seq['ELMflank'][pos] = seq['res'][pos]
   return seq
 
-def find_elm_pdb(pdb_seqs, elm_seqs):
+def OLD_find_elm_pdb(pdb_seqs, elm_seqs):
   '''Find ELM Instance and flanking sequences in PDB sequences'''
 #  len_adaptor = len(adaptor) #cache this for later
   pdb_match = {}
   for record in pdb_seqs:
-#    if 'SEQRES' in pdb_seqs.id:
+    # if 'SEQRES' in pdb_seqs.id:
     recordname = str(record.id.rsplit('|', 1)[0])
     index = record.id.find('SEQRES')
     if index != -1:  # reading SEQRES sequence
@@ -158,6 +158,113 @@ def find_elm_pdb(pdb_seqs, elm_seqs):
       seqres_match = 0
   return pdb_match  
 
+def find_elm_pdb(pdb_seqs, elm_seqs, elm_seqs_key):
+  '''Find ELM Instance and flanking sequences in PDB sequences'''
+#  len_adaptor = len(adaptor) #cache this for later
+  pdb_match = {}
+  elm_seqs_key_sequence = '-'.join([elm_seqs_key,'sequence'])
+  elm_seqs_key_seqres = '-'.join([elm_seqs_key,'seqres'])
+  elm_seqs_key_seqatom = '-'.join([elm_seqs_key,'seqatom'])
+  sequence_match = 0
+  seqres_match = 0
+
+  for record in pdb_seqs:
+    # if 'SEQRES' in pdb_seqs.id:
+    recordname = str(record.id.rsplit('|', 1)[0])
+    indexseqres = record.id.find('SEQRES')
+    indexseqatom = record.id.find('SEQATOM')
+#    indexsequence = record.id.find('sequence')
+#    if indexsequence != -1:  # reading PDB_ss.txt sequence; activate this and indexsequence definition above if line below fails
+    if record.id.find('sequence') != -1:  # reading PDB_ss.txt sequence (identical to Uniprot?)
+      pdb_match[recordname] = {}
+
+      instance_index = record.seq.find(elm_seqs['instance'])
+      if instance_index == -1:  # if instance not found in PDB_ss sequence
+        sequence_match = 0
+        pdb_match[recordname]['instance-sequence'] = '-'
+        pdb_match[recordname]['flanks-sequence'] = '-'
+        pdb_match[recordname][elm_seqs_key_sequence] = '-'
+      else: # if instance found in PDB_ss sequence
+        sequence_match = 1
+        pdb_match[recordname]['instance-sequence'] = instance_index + 1
+
+        flanks_index = record.seq.find(elm_seqs['flanks'])
+        if flanks_index == -1:  # if flanks not found in PDB_ss sequence
+          pdb_match[recordname]['flanks-sequence'] = '-'
+          pdb_match[recordname][elm_seqs_key_sequence] = '-'
+        else:  # if flanks found in PDB_ss sequence
+          pdb_match[recordname]['flanks-sequence'] = flanks_index + 1
+
+        flankn_index = record.seq.find(elm_seqs[elm_seqs_key])
+        if flankn_index == -1:  # if flankN not found in PDB_ss sequence
+          pdb_match[recordname][elm_seqs_key_sequence] = '-'
+        else:  # if flankN found in PDB_ss sequence
+          pdb_match[recordname][elm_seqs_key_sequence] = flankn_index + 1
+
+    elif indexseqres != -1:  # reading SEQRES sequence
+      if sequence_match != 1:  # if instance not found in corresponding PDB_ss sequence
+        pdb_match[recordname]['instance-seqres'] = '-'
+        pdb_match[recordname]['flanks-seqres'] = '-'
+        pdb_match[recordname][elm_seqs_key_seqres] = '-'
+
+      else:  # if instance found in corresponding PDB_ss sequence
+        instance_index = record.seq.find(elm_seqs['instance'])
+        if instance_index == -1:  # if instance not found in SEQRES
+         seqres_match = 0
+         pdb_match[recordname]['instance-seqres'] = '-'
+         pdb_match[recordname]['flanks-seqres'] = '-'
+         pdb_match[recordname][elm_seqs_key_seqres] = '-'
+        else:  # if instance found in SEQRES
+          seqres_match = 1
+          pdb_match[recordname]['instance-seqres'] = instance_index + 1
+
+          flanks_index = record.seq.find(elm_seqs['flanks'])
+          if flanks_index == -1:  # if flanks not found in SEQRES
+            pdb_match[recordname]['flanks-seqres'] = '-'
+            pdb_match[recordname][elm_seqs_key_seqres] = '-'
+          else:  # if flanks found in SEQRES
+            pdb_match[recordname]['flanks-seqres'] = flanks_index + 1
+        
+          flankn_index = record.seq.find(elm_seqs[elm_seqs_key])
+          if flankn_index == -1:  # if flankN not found in SEQRES
+            pdb_match[recordname][elm_seqs_key_seqres] = '-'
+          else:  # if flankN found in SEQRES
+            pdb_match[recordname][elm_seqs_key_seqres] = flankn_index + 1
+
+    elif indexseqatom != -1:  # reading SEQATOM sequence
+      if seqres_match != 1:  # if instance not found in corresponding SEQRES
+        pdb_match[recordname]['instance-seqatom'] = '-'
+        pdb_match[recordname]['flanks-seqatom'] = '-'
+        pdb_match[recordname][elm_seqs_key_seqatom] = '-'
+
+      else:  # if instance found in corresponding SEQRES
+        instance_index = record.seq.find(elm_seqs['instance'])
+        if instance_index == -1:  # if instance not found in SEQATOM
+          pdb_match[recordname]['instance-seqatom'] = '-'
+          pdb_match[recordname]['flanks-seqatom'] = '-'
+          pdb_match[recordname][elm_seqs_key_seqatom] = '-'
+        else:  # if instance found in SEQATOM
+          pdb_match[recordname]['instance-seqatom'] = instance_index + 1
+
+          flanks_index = record.seq.find(elm_seqs['flanks'])
+          if flanks_index == -1:  # if flanks not found in SEQATOM
+            pdb_match[recordname]['flanks-seqatom'] = '-'
+            pdb_match[recordname][elm_seqs_key_seqatom] = '-'
+          else:  # if flanks found in SEQATOM
+            pdb_match[recordname]['flanks-seqatom'] = flanks_index + 1
+
+          flankn_index = record.seq.find(elm_seqs[elm_seqs_key])
+          if flankn_index == -1:  # if flankN not found in SEQATOM
+            pdb_match[recordname][elm_seqs_key_seqatom] = '-'
+          else:  # if flankN found in SEQATOM
+            pdb_match[recordname][elm_seqs_key_seqatom] = flankn_index + 1
+
+      sequence_match = 0
+      seqres_match = 0
+
+  return pdb_match
+
+
 # Start      
 
 # Make dict of sequences in input ELM file
@@ -174,16 +281,21 @@ for index, record in enumerate(SeqIO.parse(in_elm_fasta, "fasta")):
     elm_seqs['flanks'] = record.seq.strip("-")
     print '#FLK:{}'.format(elm_seqs['flanks'])
   else:  # parse flankn
-    elm_seqs_key = record.id.rsplit('|',1)[1]
+    elm_seqs_key = record.id.rsplit('|',1)[1]  # e.g. flank10
     elm_seqs[elm_seqs_key] = record.seq.strip("-")
     elm_seqs_flanklen = len(elm_seqs[elm_seqs_key]) - len(elm_seqs['instance'])
     print '#F{}:{}'.format(elm_seqs_flanklen,elm_seqs[elm_seqs_key])
+    print '{}\t{}\t{}\t{}\t{}\t{}{}\t{}\t{}\t{}{}\t{}\t{}\t{}{}'.format('ELMAccession','PDBID','PDBChain','ELM-SeqPDBss','flanks-SeqPDBss',elm_seqs_key,'-SeqPDBss','ELM-SEQRES','flanks-SEQRES',elm_seqs_key,'-SEQRES','ELM-SEQATOM','flanks-SEQATOM',elm_seqs_key,'-SEQATOM')
 #    print '#FLN:{}'.format(elm_seqs[elm_seqs_key])
 #print '#NAM:{}\n#SEQ:{}\n#ELM:{}\n#FLK:{}\n#FLN:{}'.format(elm_seqs['name'],elm_seqs['sequence'],elm_seqs['instance'],elm_seqs['flanks'],elm_seqs[elm_seqs_key])
 
 # Find ELM sequences in PDB sequences
 pdb_seqs = SeqIO.parse(in_seqatom_fasta, "fasta")
-pdb_match = find_elm_pdb(pdb_seqs, elm_seqs)
+#pdb_match = find_elm_pdb(pdb_seqs, elm_seqs)
+elm_seqs_key_sequence = '-'.join([elm_seqs_key,'sequence'])
+elm_seqs_key_seqres = '-'.join([elm_seqs_key,'seqres'])
+elm_seqs_key_seqatom = '-'.join([elm_seqs_key,'seqatom'])
+pdb_match = find_elm_pdb(pdb_seqs, elm_seqs, elm_seqs_key)
 #print 'pdb_match:\n{}'.format(pdb_match)
 #for pdbchain, match in pdb_match:
 for pdbchain, match in pdb_match.iteritems():
@@ -191,8 +303,11 @@ for pdbchain, match in pdb_match.iteritems():
 #    if '-' not in matchkey.values():
 #  for matchkey in match.iterkeys():
 #    if matchkey.['instance-seqres'] != '-':
-  if match['instance-seqres'] != '-':
-    print '{}\t{}\t{}\t{}\t{}\t{}\t{}'.format(elm_seqs['name'].split('|')[3],pdbchain.split('|')[0],pdbchain.split('|')[1],match['instance-seqres'],match['flanks-seqres'],match['instance-seqatom'],match['flanks-seqatom'])
+
+#  if match['instance-seqres'] != '-':
+#    print '{}\t{}\t{}\t{}\t{}\t{}\t{}'.format(elm_seqs['name'].split('|')[3],pdbchain.split('|')[0],pdbchain.split('|')[1],match['instance-seqres'],match['flanks-seqres'],match['instance-seqatom'],match['flanks-seqatom'])
+  if match['instance-sequence'] != '-':
+    print '{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}'.format(elm_seqs['name'].split('|')[3],pdbchain.split('|')[0],pdbchain.split('|')[1],match['instance-sequence'],match['flanks-sequence'],match[elm_seqs_key_sequence],match['instance-seqres'],match['flanks-seqres'],match[elm_seqs_key_seqres],match['instance-seqatom'],match['flanks-seqatom'],match[elm_seqs_key_seqatom])
 exit()
 
 

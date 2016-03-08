@@ -285,7 +285,7 @@ for index, record in enumerate(SeqIO.parse(in_elm_fasta, "fasta")):
     elm_seqs[elm_seqs_key] = record.seq.strip("-")
     elm_seqs_flanklen = len(elm_seqs[elm_seqs_key]) - len(elm_seqs['instance'])
     print '#F{}:{}'.format(elm_seqs_flanklen,elm_seqs[elm_seqs_key])
-    print '{}\t{}\t{}\t{}\t{}\t{}{}\t{}\t{}\t{}{}\t{}\t{}\t{}{}'.format('ELMAccession','PDBID','PDBChain','ELM-SeqPDBss','flanks-SeqPDBss',elm_seqs_key,'-SeqPDBss','ELM-SEQRES','flanks-SEQRES',elm_seqs_key,'-SEQRES','ELM-SEQATOM','flanks-SEQATOM',elm_seqs_key,'-SEQATOM')
+    print '#{}\t{}\t{}\t{}\t{}\t{}{}\t{}\t{}\t{}{}\t{}\t{}\t{}{}'.format('ELMAccession','PDBID','PDBChain','ELM-SeqPDBss','flanks-SeqPDBss',elm_seqs_key,'-SeqPDBss','ELM-SEQRES','flanks-SEQRES',elm_seqs_key,'-SEQRES','ELM-SEQATOM','flanks-SEQATOM',elm_seqs_key,'-SEQATOM')
 #    print '#FLN:{}'.format(elm_seqs[elm_seqs_key])
 #print '#NAM:{}\n#SEQ:{}\n#ELM:{}\n#FLK:{}\n#FLN:{}'.format(elm_seqs['name'],elm_seqs['sequence'],elm_seqs['instance'],elm_seqs['flanks'],elm_seqs[elm_seqs_key])
 
